@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Figurinhas Braian" />
+  <meta name="theme-color" content="#0f1117" />
+  <title>🎴 Faltantes Braian</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+    :root{
+      --bg:#0f1117;--bg2:#13171f;--bg3:#1a1f2e;--border:#2a2f3e;
+      --gold:#f5c842;--text:#e8e0d0;--muted:#666;--green:#4caf7d;--red:#e05555;
+    }
+    body{background:var(--bg);color:var(--text);font-family:'Courier New',Courier,monospace;min-height:100vh;overscroll-behavior:none}
+
+    #header{position:sticky;top:0;z-index:20;background:linear-gradient(160deg,#1a1f2e,#0f1117);border-bottom:2px solid var(--gold);padding:14px 16px 12px}
+    #header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+    #header-eyebrow{font-size:9px;letter-spacing:5px;color:var(--gold);text-transform:uppercase;margin-bottom:2px}
+    #header-title{font-size:18px;font-weight:900;letter-spacing:2px;color:#fff;text-transform:uppercase}
+    #last-updated{font-size:9px;color:#3a3f4e;letter-spacing:1px;margin-top:2px}
+    #btn-refresh{background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:18px;width:38px;height:38px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    #btn-refresh.spinning{animation:spin 1s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    #stats-row{display:flex;gap:12px;font-size:11px;color:var(--muted);margin-bottom:10px;flex-wrap:wrap}
+    #stats-row b{color:var(--gold)}
+    #stat-got b{color:var(--green)}
+    #search-row{display:flex;gap:8px}
+    #search{flex:1;background:var(--bg3);border:1px solid var(--gold);border-radius:6px;color:#fff;padding:8px 12px;font-size:14px;font-family:inherit;outline:none}
+    #search::placeholder{color:#444}
+    #btn-expand{background:transparent;border:1px solid var(--gold);border-radius:6px;color:var(--gold);padding:8px 12px;font-size:11px;font-family:inherit;font-weight:700;letter-spacing:1px;cursor:pointer;white-space:nowrap}
+    #btn-expand.active{background:var(--gold);color:var(--bg)}
+
+    /* ── TROCA ── */
+    #troca-page{display:none;padding:16px 16px 80px;max-width:540px;margin:0 auto}
+    #troca-input-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px}
+    #troca-input-wrap label{font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:8px}
+    #troca-url{width:100%;background:var(--bg);border:1px solid var(--gold);border-radius:6px;color:#fff;padding:9px 12px;font-size:12px;font-family:inherit;outline:none;box-sizing:border-box}
+    #troca-url::placeholder{color:#444}
+    #btn-cruzar{width:100%;margin-top:10px;background:var(--gold);color:var(--bg);border:none;border-radius:6px;padding:11px;font-family:inherit;font-size:13px;font-weight:900;letter-spacing:1px;cursor:pointer}
+    #btn-cruzar:active{opacity:.8}
+    #troca-status{text-align:center;padding:30px 0;color:var(--muted);font-size:13px;display:none}
+    #troca-results{margin-top:16px}
+    .troca-section{margin-bottom:14px}
+    .troca-section-title{font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+    .troca-team{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:6px}
+    .troca-team-header{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+    .troca-team-flag{font-size:16px}
+    .troca-team-name{font-size:13px;font-weight:700;color:var(--text)}
+    .troca-stickers{display:flex;flex-wrap:wrap;gap:5px}
+    .troca-chip{background:var(--bg3);border-radius:4px;padding:3px 8px;font-size:12px;font-weight:700}
+    .troca-chip.eu-tenho{color:#4caf7d;border:1px solid #4caf7d}
+    .troca-chip.ela-tem{color:var(--gold);border:1px solid var(--gold)}
+    .troca-empty{text-align:center;padding:30px;color:var(--muted);font-size:13px;background:var(--bg2);border-radius:10px}
+    .troca-summary{background:var(--bg3);border:1px solid var(--gold);border-radius:10px;padding:14px;margin-bottom:16px;display:flex;gap:10px}
+    .troca-summary-item{flex:1;text-align:center}
+    .troca-summary-num{font-size:24px;font-weight:900;color:var(--gold)}
+    .troca-summary-label{font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-top:2px}
+
+    /* ── TABS ── */
+    #tabs{display:flex;border-bottom:2px solid var(--gold);margin-top:10px}
+    .tab{flex:1;padding:7px 0;font-family:inherit;font-size:12px;font-weight:700;letter-spacing:1px;border:none;background:transparent;color:var(--muted);cursor:pointer;text-transform:uppercase}
+    .tab.active{color:var(--gold);border-bottom:2px solid var(--gold);margin-bottom:-2px}
+
+    /* ── STATS PAGE ── */
+    #stats-page{display:none;padding:16px 16px 80px;max-width:540px;margin:0 auto}
+    .stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin-bottom:10px}
+    .stat-card.highlight{border-color:var(--gold);background:var(--bg3)}
+    .stat-label{font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:6px}
+    .stat-value{font-size:28px;font-weight:900;color:var(--gold);letter-spacing:1px}
+    .stat-sub{font-size:11px;color:var(--muted);margin-top:4px}
+    .stat-row{display:flex;gap:10px;margin-bottom:10px}
+    .stat-row .stat-card{flex:1;margin-bottom:0}
+    .progress-wrap{background:var(--border);border-radius:20px;height:10px;margin:10px 0 4px;overflow:hidden}
+    .progress-bar{height:10px;border-radius:20px;background:linear-gradient(90deg,#4caf7d,var(--gold));transition:width .6s ease}
+    .stat-team-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px}
+    .stat-team-row:last-child{border-bottom:none}
+    .stat-team-name{color:var(--text)}
+    .stat-team-badge{background:var(--bg3);border-radius:12px;padding:2px 10px;font-size:11px;font-weight:700}
+    .badge-green{color:var(--green);border:1px solid var(--green)}
+    .badge-gold{color:var(--gold);border:1px solid var(--gold)}
+    .badge-red{color:#e05555;border:1px solid #e05555}
+
+
+    #status{text-align:center;padding:60px 20px;color:var(--muted);font-size:13px;line-height:1.8}
+    #status .icon{font-size:36px;margin-bottom:12px;display:block}
+    #status a{color:var(--gold);text-decoration:none}
+
+    #list{padding:12px 12px 100px;max-width:540px;margin:0 auto}
+    .team-card{margin-bottom:7px;border:1px solid var(--border);border-radius:8px;overflow:hidden}
+    .team-card.open{border-color:var(--gold)}
+    .team-header{width:100%;background:var(--bg2);border:none;color:var(--text);padding:11px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-family:inherit;font-size:14px;text-align:left;gap:8px}
+    .team-card.open .team-header{background:var(--bg3)}
+    .team-left{display:flex;align-items:center;gap:8px;min-width:0}
+    .team-flag{font-size:18px;flex-shrink:0}
+    .team-code{font-weight:900;letter-spacing:1px;flex-shrink:0}
+    .team-card.open .team-code{color:var(--gold)}
+    .team-name{color:var(--muted);font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .team-count{background:var(--gold);color:var(--bg);border-radius:20px;padding:2px 10px;font-size:12px;font-weight:900;flex-shrink:0}
+    .team-card.done .team-count{background:var(--green)}
+    .team-body{display:none;background:#0d1018;padding:12px 14px;border-top:1px solid #1e2435}
+    .team-card.open .team-body{display:block}
+    .stickers{display:flex;flex-wrap:wrap;gap:6px}
+    .sticker{background:var(--bg3);border:1px solid #2d3450;border-radius:5px;padding:6px 10px;font-size:13px;font-weight:700;color:var(--gold);letter-spacing:.5px;cursor:pointer;user-select:none;transition:transform .1s;-webkit-user-select:none}
+    .sticker:active{transform:scale(.93)}
+    .sticker.got{background:#0d1a12;border-color:var(--green);color:var(--green);text-decoration:line-through;opacity:.55}
+    .sticker.saving{opacity:.4;pointer-events:none}
+    .team-footer{margin-top:8px;font-size:10px;color:#444;letter-spacing:1px}
+
+    /* DIALOG */
+    #overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:100;align-items:center;justify-content:center;padding:24px}
+    #overlay.show{display:flex}
+    #dialog{background:#1a1f2e;border:1px solid var(--gold);border-radius:16px;padding:28px 24px 32px;width:100%;max-width:380px;animation:popIn .2s ease}
+    @keyframes popIn{from{transform:scale(.92);opacity:0}to{transform:scale(1);opacity:1}}
+    #dialog-icon{font-size:36px;text-align:center;margin-bottom:10px}
+    #dialog-title{font-size:16px;font-weight:900;text-align:center;color:#fff;letter-spacing:1px;margin-bottom:6px}
+    #dialog-sticker{font-size:22px;font-weight:900;color:var(--gold);text-align:center;margin-bottom:10px;letter-spacing:2px}
+    #dialog-sub{font-size:12px;color:var(--muted);text-align:center;margin-bottom:24px;line-height:1.6}
+    #dialog-sync{font-size:11px;color:#3a3f4e;text-align:center;margin-bottom:16px}
+    #dialog-buttons{display:flex;gap:10px}
+    .dlg-btn{flex:1;padding:13px;border-radius:8px;font-family:inherit;font-size:14px;font-weight:700;border:none;cursor:pointer;letter-spacing:1px}
+    #dlg-cancel{background:var(--bg);border:1px solid var(--border);color:var(--muted)}
+    #dlg-confirm{background:var(--green);color:#fff}
+
+    /* TOAST */
+    #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1f2e;border:1px solid var(--green);border-radius:8px;padding:10px 18px;font-size:13px;color:var(--text);display:none;z-index:200;white-space:nowrap;gap:14px;align-items:center}
+    #toast.show{display:flex}
+    #toast.error{border-color:var(--red)}
+    #toast-undo{color:var(--gold);font-weight:900;cursor:pointer;border:none;background:none;font-family:inherit;font-size:13px}
+
+    /* SYNC indicator */
+    .sync-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);margin-left:6px;vertical-align:middle}
+    .sync-dot.off{background:var(--red)}
+  </style>
+</head>
+<body>
+
+<div id="header">
+  <div id="header-top">
+    <div>
+      <div id="header-eyebrow">Copa do Mundo 2026 — Braian</div>
+      <div id="header-title">📋 Faltantes A–Z</div>
+      <div id="last-updated"></div>
+    </div>
+    <button id="btn-refresh" title="Atualizar" onclick="loadData()">↻</button>
+  </div>
+  <div id="stats-row">
+    <span id="stat-missing">–</span>
+    <span id="stat-teams">–</span>
+    <span id="stat-got" style="display:none">–</span>
+    <span id="stat-sync" style="display:none"></span>
+  </div>
+  <div id="search-row">
+    <input id="search" type="search" placeholder="Buscar seleção..." oninput="renderList()" autocomplete="off"/>
+    <button id="btn-expand" onclick="toggleAll()">▼ Expandir</button>
+  </div>
+  <div id="tabs">
+    <button class="tab active" id="tab-list" onclick="switchTab('list')">📋 Faltantes</button>
+    <button class="tab" id="tab-stats" onclick="switchTab('stats')">📊 Estatísticas</button>
+    <button class="tab" id="tab-troca" onclick="switchTab('troca')">🔄 Trocas</button>
+  </div>
+</div>
+
+<div id="status"><span class="icon">⏳</span>Carregando dados da planilha...</div>
+<div id="list" style="display:none"></div>
+<div id="stats-page"></div>
+<div id="troca-page"></div>
+
+<div id="overlay" onclick="closeDialog()">
+  <div id="dialog" onclick="event.stopPropagation()">
+    <div id="dialog-icon">🎴</div>
+    <div id="dialog-title"></div>
+    <div id="dialog-sticker"></div>
+    <div id="dialog-sub"></div>
+    <div id="dialog-sync">📡 Salvará também na planilha do Google Sheets</div>
+    <div id="dialog-buttons">
+      <button class="dlg-btn" id="dlg-cancel" onclick="closeDialog()">Cancelar</button>
+      <button class="dlg-btn" id="dlg-confirm" onclick="confirmGot()"></button>
+    </div>
+  </div>
+</div>
+
+<div id="toast">
+  <span id="toast-msg"></span>
+  <button id="toast-undo" onclick="undoGot()" style="display:none">DESFAZER</button>
+</div>
+
+<script>
+// ── CONFIG — cole aqui a URL do seu Apps Script após implantar ──
+const APPS_SCRIPT_URL = "COLE_URL_APPS_SCRIPT_BRAIAN_AQUI";
+
+const SHEET_ID = "1DQRZ1YSQ1XuN3JUgfID0q8FoOHYNJY58-RB9ml6UI5k";
+const STORAGE_KEY = "faltantes_got_2026_braian";
+
+const TEAM_RANGES = {
+  ALG:"T123:U142",ARG:"Q123:R142",AUS:"W51:X70",AUT:"W123:X142",
+  BEL:"C99:D118",BIH:"T27:U46",BRA:"C51:D70",CAN:"Q27:R46",
+  CIV:"I75:J94",COD:"F147:G166",COL:"L147:M166",CPV:"T99:U118",
+  CRO:"T147:U166",CUW:"F75:G94",CZE:"L27:M46",ECU:"L75:M94",
+  EGY:"F99:G118",ENG:"Q147:R166",ESP:"Q99:R118",FRA:"C123:D142",
+  GER:"C75:D94",GHA:"W147:X166",HAI:"I51:J70",IRN:"I99:J118",
+  IRQ:"I123:J142",JOR:"Z123:AA142",JPN:"T75:U94",KOR:"I27:J46",
+  KSA:"W99:X118",MAR:"F51:G70",MEX:"C27:D46",NED:"Q75:R94",
+  NOR:"L123:M142",NZL:"L99:M118",PAN:"Z147:AA166",PAR:"T51:U70",
+  POR:"C147:D166",QAT:"W27:X46",RSA:"F27:G46",SCO:"L51:M70",
+  SEN:"F123:G142",SUI:"Z27:AA46",SWE:"W75:X94",TUN:"Z75:AA94",
+  TUR:"Z51:AA70",URU:"Z99:AA118",USA:"Q51:R70",UZB:"I147:J166",
+};
+const FWC_RANGES = ["W12:X20","Z12:AA22"];
+const COUNTRY_NAMES = {
+  ALG:"Argélia",ARG:"Argentina",AUS:"Austrália",AUT:"Áustria",BEL:"Bélgica",
+  BEL:"Bélgica",BIH:"Bósnia",BRA:"Brasil",CAN:"Canadá",CIV:"Costa do Marfim",COD:"Congo DR",
+  COL:"Colômbia",CPV:"Cabo Verde",CRO:"Croácia",CUW:"Curaçao",CZE:"Tchéquia",
+  ECU:"Equador",EGY:"Egito",ENG:"Inglaterra",ESP:"Espanha",FRA:"França",
+  FWC:"FWC (Especiais)",GER:"Alemanha",GHA:"Gana",HAI:"Haiti",IRN:"Irã",
+  IRQ:"Iraque",JOR:"Jordânia",JPN:"Japão",KOR:"Coreia do Sul",KSA:"Arábia Saudita",
+  MAR:"Marrocos",MEX:"México",NED:"Holanda",NOR:"Noruega",NZL:"Nova Zelândia",
+  PAN:"Panamá",PAR:"Paraguai",POR:"Portugal",POR:"Portugal",QAT:"Catar",RSA:"África do Sul",
+  SCO:"Escócia",SEN:"Senegal",SUI:"Suíça",SWE:"Suécia",TUN:"Tunísia",
+  TUR:"Turquia",URU:"Uruguai",USA:"EUA",UZB:"Uzbequistão",
+};
+const FLAGS = {
+  ALG:"🇩🇿",ARG:"🇦🇷",AUS:"🇦🇺",AUT:"🇦🇹",BEL:"🇧🇪",BEL:"🇧🇪",BIH:"🇧🇦",BRA:"🇧🇷",
+  CAN:"🇨🇦",CIV:"🇨🇮",COD:"🇨🇩",COL:"🇨🇴",CPV:"🇨🇻",CRO:"🇭🇷",CUW:"🇨🇼",
+  CZE:"🇨🇿",ECU:"🇪🇨",EGY:"🇪🇬",ENG:"🏴󠁧󠁢󠁥󠁮󠁧󠁿",ESP:"🇪🇸",FRA:"🇫🇷",FWC:"🏆",
+  GER:"🇩🇪",GHA:"🇬🇭",HAI:"🇭🇹",IRN:"🇮🇷",IRQ:"🇮🇶",JOR:"🇯🇴",JPN:"🇯🇵",
+  KOR:"🇰🇷",KSA:"🇸🇦",MAR:"🇲🇦",MEX:"🇲🇽",NED:"🇳🇱",NOR:"🇳🇴",NZL:"🇳🇿",
+  PAN:"🇵🇦",PAR:"🇵🇾",POR:"🇵🇹",POR:"🇵🇹",QAT:"🇶🇦",RSA:"🇿🇦",SCO:"🏴󠁧󠁢󠁳󠁣󠁴󠁿",SEN:"🇸🇳",
+  SUI:"🇨🇭",SWE:"🇸🇪",TUN:"🇹🇳",TUR:"🇹🇷",URU:"🇺🇾",USA:"🇺🇸",UZB:"🇺🇿",
+};
+
+// STATE
+let allData = {};
+let gotSet = new Set();
+let expandedAll = false;
+let expandedCards = {};
+let pendingSticker = null;
+let lastUndo = null;
+let toastTimer = null;
+let scriptOnline = null; // null=unknown, true, false
+
+// PERSISTENCE — source of truth is Google Sheets
+function loadGot(){
+  // localStorage used only as fallback cache while sheet loads
+  try{gotSet=new Set(JSON.parse(localStorage.getItem(STORAGE_KEY)||"[]"))}
+  catch{gotSet=new Set()}
+}
+function saveGot(){
+  // always mirror to localStorage as offline cache
+  localStorage.setItem(STORAGE_KEY,JSON.stringify([...gotSet]))
+}
+
+async function loadGotFromSheet(){
+  // Read all sticker statuses from the sheet via Apps Script
+  try{
+    const url = APPS_SCRIPT_URL + "?action=getall";
+    const r = await fetch(url);
+    const j = await r.json();
+    if(j.ok && j.got){
+      gotSet = new Set(j.got);
+      saveGot(); // update local cache
+      updateStats();
+      renderList();
+      if(document.getElementById('stats-page').style.display!=='none') renderStatsPage();
+    }
+  } catch(e){
+    console.warn("Could not load got from sheet, using local cache:", e);
+  }
+}
+
+// CHECK SCRIPT
+async function checkScript(){
+  if(!APPS_SCRIPT_URL || APPS_SCRIPT_URL==="COLE_SUA_URL_AQUI"){
+    scriptOnline=false; updateSyncBadge(); return;
+  }
+  try{
+    const r = await fetch(APPS_SCRIPT_URL+"?action=ping");
+    const j = await r.json();
+    scriptOnline = !!j.ok;
+  }catch{ scriptOnline=false; }
+  updateSyncBadge();
+}
+function updateSyncBadge(){
+  const el = document.getElementById("stat-sync");
+  if(scriptOnline===true){
+    el.style.display="inline";
+    el.innerHTML=`📡 sincroniza com Sheets<span class="sync-dot"></span>`;
+  } else if(scriptOnline===false){
+    el.style.display="inline";
+    el.innerHTML=`📡 só local<span class="sync-dot off"></span>`;
+  }
+}
+
+// SEND TO SHEETS
+async function sendToSheets(sticker, value){
+  if(!scriptOnline) return false;
+  try{
+    const url = `${APPS_SCRIPT_URL}?action=set&sticker=${encodeURIComponent(sticker)}&value=${value}`;
+    const r = await fetch(url);
+    const j = await r.json();
+    return !!j.ok;
+  }catch{ return false; }
+}
+
+// LOAD — tudo via Apps Script, sem depender do CSV público
+async function loadData(){
+  const btn=document.getElementById("btn-refresh");
+  btn.classList.add("spinning");
+  showStatus("⏳","Carregando dados da planilha...");
+  document.getElementById("list").style.display="none";
+  checkScript();
+  try{
+    // Load missing stickers AND got stickers in parallel from Apps Script
+    const [missingRes, gotRes] = await Promise.all([
+      fetch(APPS_SCRIPT_URL+"?action=getmissing"),
+      fetch(APPS_SCRIPT_URL+"?action=getall")
+    ]);
+
+    const missingJson = await missingRes.json();
+    const gotJson     = await gotRes.json();
+
+    if(!missingJson.ok) throw new Error("getmissing failed");
+
+    // Build allData from missing stickers
+    const result = {};
+    for(const [team, nums] of Object.entries(missingJson.missing)){
+      if(nums.length > 0) result[team] = nums;
+    }
+    allData = result;
+    expandedCards = {};
+
+    // Build gotSet from sheet
+    if(gotJson.ok && gotJson.got){
+      gotSet = new Set(gotJson.got);
+      saveGot();
+    }
+
+    updateStats();
+    const now=new Date();
+    document.getElementById("last-updated").textContent=
+      `atualizado ${now.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})}`;
+    document.getElementById("status").style.display="none";
+    document.getElementById("list").style.display="block";
+    renderList();
+
+  }catch(err){
+    console.error(err);
+    showStatus("⚠️",
+      `Erro: ${err.message}<br><br>`+
+      `<a href="https://docs.google.com/spreadsheets/d/${SHEET_ID}/edit" target="_blank">Abrir planilha →</a>`
+    );
+  }finally{btn.classList.remove("spinning")}
+}
+function showStatus(icon,msg){
+  const s=document.getElementById("status");
+  s.style.display="block";
+  s.innerHTML=`<span class="icon">${icon}</span>${msg}`;
+}
+
+// STATS
+function updateStats(){
+  const all=Object.values(allData).flat();
+  const remaining=all.filter(s=>!gotSet.has(s)).length;
+  const teamsLeft=Object.entries(allData).filter(([,v])=>v.some(s=>!gotSet.has(s))).length;
+  document.getElementById("stat-missing").innerHTML=`🃏 <b>${remaining}</b> faltantes`;
+  document.getElementById("stat-teams").innerHTML=`📦 <b>${teamsLeft}</b> seleções`;
+  const sg=document.getElementById("stat-got");
+  const coladas=gotSet.size;
+  if(coladas>0){sg.style.display="inline";sg.innerHTML=`✅ <b>${coladas}</b> coladas`;}
+  else sg.style.display="none";
+  // refresh stats page if visible
+  try{ if(document.getElementById('stats-page').style.display!=='none') renderStatsPage(); }catch(e){ console.error('renderStatsPage error:',e); }
+}
+
+
+// RENDER
+function renderList(){
+  const q=document.getElementById("search").value.toLowerCase();
+  const list=document.getElementById("list");
+  const filtered=Object.keys(allData).sort()
+    .filter(code=>!q||code.toLowerCase().includes(q)||(COUNTRY_NAMES[code]||"").toLowerCase().includes(q));
+  if(!filtered.length){
+    list.innerHTML=`<div style="text-align:center;color:var(--muted);padding:40px 0;font-size:13px;">Nenhuma seleção encontrada.</div>`;
+    return;
+  }
+  list.innerHTML=filtered.map(code=>{
+    const nums=allData[code];
+    const remaining=nums.filter(s=>!gotSet.has(s)).length;
+    const isOpen=!!expandedCards[code];
+    const allGot=remaining===0;
+    return `
+    <div class="team-card${isOpen?" open":""}${allGot?" done":""}" id="card-${code}">
+      <button class="team-header" onclick="toggleCard('${code}')">
+        <span class="team-left">
+          <span class="team-flag">${FLAGS[code]||"🏳"}</span>
+          <span class="team-code">${code}</span>
+          <span class="team-name">${COUNTRY_NAMES[code]||code}</span>
+        </span>
+        <span class="team-count">${allGot?"✓":remaining}</span>
+      </button>
+      <div class="team-body">
+        <div class="stickers">
+          ${nums.map(s=>`<span class="sticker${gotSet.has(s)?" got":""}" id="s-${s.replace("-","_")}" onclick="askGot('${s}')">${s}</span>`).join("")}
+        </div>
+        <div class="team-footer">${remaining} figurinha${remaining!==1?"s":""} faltando · toque para marcar</div>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function toggleCard(code){
+  expandedCards[code]=!expandedCards[code];
+  document.getElementById("card-"+code)?.classList.toggle("open",!!expandedCards[code]);
+}
+function toggleAll(){
+  expandedAll=!expandedAll;
+  const btn=document.getElementById("btn-expand");
+  btn.textContent=expandedAll?"▲ Recolher":"▼ Expandir";
+  btn.classList.toggle("active",expandedAll);
+  Object.keys(allData).forEach(c=>expandedCards[c]=expandedAll);
+  renderList();
+}
+
+// DIALOG
+function askGot(sticker){
+  pendingSticker=sticker;
+  const alreadyGot=gotSet.has(sticker);
+  document.getElementById("dialog-sticker").textContent=sticker;
+  document.getElementById("dialog-title").textContent=alreadyGot?"Desfazer marcação?":"Conseguiu essa figurinha?";
+  document.getElementById("dialog-sub").textContent=alreadyGot
+    ?"Ela voltará para a lista de faltantes e será atualizada na planilha."
+    :"Ela ficará riscada e a planilha será atualizada automaticamente.";
+  document.getElementById("dialog-sync").style.display=scriptOnline?"block":"none";
+  document.getElementById("dlg-confirm").textContent=alreadyGot?"↩ Desfazer":"✓ Consegui!";
+  document.getElementById("dlg-confirm").style.background=alreadyGot?"var(--muted)":"var(--green)";
+  document.getElementById("overlay").classList.add("show");
+}
+function closeDialog(){ document.getElementById("overlay").classList.remove("show"); pendingSticker=null; }
+
+async function confirmGot(){
+  if(!pendingSticker)return;
+  const sticker=pendingSticker;
+  const wasGot=gotSet.has(sticker);
+  closeDialog();
+
+  // Update local immediately
+  wasGot ? gotSet.delete(sticker) : gotSet.add(sticker);
+  saveGot(); updateStats(); renderList();
+
+  if(!wasGot){ lastUndo=sticker; showToast(`${sticker} marcada ✓`,true); }
+
+  // Send to Sheets async
+  if(scriptOnline){
+    const el=document.getElementById("s-"+sticker.replace("-","_"));
+    el?.classList.add("saving");
+    const ok=await sendToSheets(sticker, !wasGot);
+    el?.classList.remove("saving");
+    if(!ok) showToast("⚠️ Não sincronizou com o Sheets",false);
+  }
+}
+
+// TOAST
+function showToast(msg,showUndo){
+  clearTimeout(toastTimer);
+  document.getElementById("toast-msg").textContent=msg;
+  const undoBtn=document.getElementById("toast-undo");
+  undoBtn.style.display=showUndo?"inline":"none";
+  const toast=document.getElementById("toast");
+  toast.classList.remove("error");
+  if(!showUndo)toast.classList.add("error");
+  toast.classList.add("show");
+  toastTimer=setTimeout(()=>toast.classList.remove("show"),4000);
+}
+async function undoGot(){
+  if(!lastUndo)return;
+  const sticker=lastUndo; lastUndo=null;
+  gotSet.delete(sticker); saveGot(); updateStats(); renderList();
+  document.getElementById("toast").classList.remove("show");
+  if(scriptOnline) await sendToSheets(sticker,false);
+}
+
+
+
+// ── TROCA ─────────────────────────────────────────────────
+let trocaData = null; // missing stickers of the other person
+
+function renderTrocaPage() {
+  const page = document.getElementById('troca-page');
+  page.innerHTML = `
+    <div id="troca-input-wrap">
+      <label>🔗 ID ou URL da planilha da outra pessoa</label>
+      <input id="troca-url" type="url" placeholder="https://docs.google.com/spreadsheets/d/..." />
+      <button id="btn-cruzar" onclick="cruzarTrocas()">⚡ Cruzar Figurinhas</button>
+    </div>
+    <div id="troca-status"></div>
+    <div id="troca-results"></div>
+  `;
+  if (trocaData) renderTrocaResults();
+}
+
+function extractSheetId(input) {
+  const match = input.match(/\/d\/([a-zA-Z0-9_-]{20,})/);
+  if (match) return match[1];
+  // Maybe they pasted just the ID
+  if (/^[a-zA-Z0-9_-]{20,}$/.test(input.trim())) return input.trim();
+  return null;
+}
+
+async function cruzarTrocas() {
+  const input = document.getElementById('troca-url').value.trim();
+  const sheetId = extractSheetId(input);
+  if (!sheetId) {
+    alert('Cole a URL completa da planilha do Google Sheets.');
+    return;
+  }
+
+  const statusEl = document.getElementById('troca-status');
+  const resultsEl = document.getElementById('troca-results');
+  statusEl.style.display = 'block';
+  statusEl.innerHTML = '⏳ Buscando dados da planilha...';
+  resultsEl.innerHTML = '';
+
+  try {
+    // Fetch their missing stickers via gviz (public sheet)
+    const theirMissing = await fetchMissingFromSheet(sheetId);
+    trocaData = theirMissing;
+    statusEl.style.display = 'none';
+    renderTrocaResults();
+  } catch(e) {
+    statusEl.innerHTML = '⚠️ Não foi possível ler a planilha.<br><br>Verifique se ela está compartilhada como <b>"Qualquer pessoa com o link pode visualizar"</b>.';
+  }
+}
+
+// Fetch missing stickers from any public sheet using the same Apps Script structure
+async function fetchMissingFromSheet(sheetId) {
+  // Use gviz CSV — works for any public sheet without needing their Apps Script
+  const THEIR_TEAM_RANGES = {
+    ALG:"T123:U142",ARG:"Q123:R142",AUS:"W51:X70",AUT:"W123:X142",
+    BEL:"C99:D118",BIH:"T27:U46",BRA:"C51:D70",CAN:"Q27:R46",
+    CIV:"I75:J94",COD:"F147:G166",COL:"L147:M166",CPV:"T99:U118",
+    CRO:"T147:U166",CUW:"F75:G94",CZE:"L27:M46",ECU:"L75:M94",
+    EGY:"F99:G118",ENG:"Q147:R166",ESP:"Q99:R118",FRA:"C123:D142",
+    GER:"C75:D94",GHA:"W147:X166",HAI:"I51:J70",IRN:"I99:J118",
+    IRQ:"I123:J142",JOR:"Z123:AA142",JPN:"T75:U94",KOR:"I27:J46",
+    KSA:"W99:X118",MAR:"F51:G70",MEX:"C27:D46",NED:"Q75:R94",
+    NOR:"L123:M142",NZL:"L99:M118",PAN:"Z147:AA166",PAR:"T51:U70",
+    POR:"C147:D166",QAT:"W27:X46",RSA:"F27:G46",SCO:"L51:M70",
+    SEN:"F123:G142",SUI:"Z27:AA46",SWE:"W75:X94",TUN:"Z75:AA94",
+    TUR:"Z51:AA70",URU:"Z99:AA118",USA:"Q51:R70",UZB:"I147:J166",
+  };
+  const FWC_R = ["W12:X20","Z12:AA22"];
+
+  const missing = {};
+
+  const fetchRange = async (range) => {
+    const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent("Álbum")}&range=${encodeURIComponent(range)}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const text = await res.text();
+    return text.trim().split("\n").map(line => {
+      const cols=[]; let cur="",inQ=false;
+      for(const c of line){
+        if(c==='"')inQ=!inQ;
+        else if(c===","&&!inQ){cols.push(cur.trim());cur="";}
+        else cur+=c;
+      }
+      cols.push(cur.trim()); return cols;
+    });
+  };
+
+  const entries = Object.entries(THEIR_TEAM_RANGES);
+  for(let i=0;i<entries.length;i+=6){
+    await Promise.all(entries.slice(i,i+6).map(async([team,range])=>{
+      const rows = await fetchRange(range);
+      const m = rows.filter(r=>r.length>=2&&r[0]&&r[1].toUpperCase()==="FALSE")
+                    .map(r=>r[0].replace(/"/g,"").trim());
+      if(m.length>0) missing[team]=m;
+    }));
+  }
+
+  // FWC
+  const fwcM=[];
+  for(const r of FWC_R){
+    (await fetchRange(r)).filter(r=>r.length>=2&&r[0]&&r[1].toUpperCase()==="FALSE")
+      .forEach(r=>fwcM.push(r[0].replace(/"/g,"").trim()));
+  }
+  if(fwcM.length>0){
+    fwcM.sort((a,b)=>(parseInt(a.replace(/\D/g,""))||0)-(parseInt(b.replace(/\D/g,""))||0));
+    missing["FWC"]=fwcM;
+  }
+
+  return missing;
+}
+
+function renderTrocaResults() {
+  const resultsEl = document.getElementById('troca-results');
+  if (!trocaData || !Object.keys(allData).length) return;
+
+  // My missing = allData stickers not in gotSet
+  const myMissing = {};
+  for (const [team, nums] of Object.entries(allData)) {
+    const m = nums.filter(s => !gotSet.has(s));
+    if (m.length) myMissing[team] = m;
+  }
+
+  // My obtained = gotSet (all TRUE in my sheet)
+  // Their missing = trocaData
+
+  // "Eu tenho, ela precisa": stickers in gotSet that are in their missing
+  const euTenho = {};
+  for (const [team, nums] of Object.entries(trocaData)) {
+    const match = nums.filter(s => gotSet.has(s));
+    if (match.length) euTenho[team] = match;
+  }
+
+  // "Ela tem, eu preciso": stickers in myMissing that are NOT in their missing
+  // (meaning they have it = TRUE in their sheet)
+  const elaTem = {};
+  for (const [team, nums] of Object.entries(myMissing)) {
+    const theirMissing = trocaData[team] || [];
+    const theirMissingSet = new Set(theirMissing);
+    const match = nums.filter(s => !theirMissingSet.has(s));
+    if (match.length) elaTem[team] = match;
+  }
+
+  const totalEuTenho = Object.values(euTenho).reduce((a,v)=>a+v.length,0);
+  const totalElaTem  = Object.values(elaTem).reduce((a,v)=>a+v.length,0);
+
+  const renderTeams = (data, chipClass) =>
+    Object.keys(data).sort().map(team => `
+      <div class="troca-team">
+        <div class="troca-team-header">
+          <span class="troca-team-flag">${FLAGS[team]||'🏳'}</span>
+          <span class="troca-team-name">${COUNTRY_NAMES[team]||team}</span>
+          <span style="margin-left:auto;font-size:11px;color:var(--muted)">${data[team].length} fig.</span>
+        </div>
+        <div class="troca-stickers">
+          ${data[team].map(s=>`<span class="troca-chip ${chipClass}">${s}</span>`).join('')}
+        </div>
+      </div>`).join('');
+
+  resultsEl.innerHTML = `
+    <div class="troca-summary">
+      <div class="troca-summary-item">
+        <div class="troca-summary-num" style="color:#4caf7d">${totalEuTenho}</div>
+        <div class="troca-summary-label">Você oferece</div>
+      </div>
+      <div class="troca-summary-item">
+        <div class="troca-summary-num" style="color:var(--gold)">${totalElaTem}</div>
+        <div class="troca-summary-label">Você precisa</div>
+      </div>
+    </div>
+
+    <div class="troca-section">
+      <div class="troca-section-title">✅ Você tem — ela precisa (${totalEuTenho})</div>
+      ${totalEuTenho ? renderTeams(euTenho,'eu-tenho') : '<div class="troca-empty">Nenhuma figurinha em comum 😕</div>'}
+    </div>
+
+    <div class="troca-section">
+      <div class="troca-section-title">⭐ Ela tem — você precisa (${totalElaTem})</div>
+      ${totalElaTem ? renderTeams(elaTem,'ela-tem') : '<div class="troca-empty">Nenhuma figurinha em comum 😕</div>'}
+    </div>
+  `;
+}
+
+// ── TABS ─────────────────────────────────────────────────
+function switchTab(tab) {
+  ['list','stats','troca'].forEach(t => {
+    document.getElementById('tab-'+t)?.classList.toggle('active', t===tab);
+  });
+  document.getElementById('search-row').style.display = tab==='list' ? 'flex' : 'none';
+  document.getElementById('btn-expand').style.display  = tab==='list' ? '' : 'none';
+  document.getElementById('list').style.display        = (tab==='list' && Object.keys(allData).length) ? 'block' : 'none';
+  document.getElementById('stats-page').style.display  = tab==='stats' ? 'block' : 'none';
+  document.getElementById('troca-page').style.display  = tab==='troca' ? 'block' : 'none';
+  if (tab==='stats') renderStatsPage();
+  if (tab==='troca') renderTrocaPage();
+}
+
+// ── STATS PAGE ────────────────────────────────────────────
+function renderStatsPage() {
+  const page = document.getElementById('stats-page');
+  if (!Object.keys(allData).length) {
+    page.innerHTML = '<div style="text-align:center;color:var(--muted);padding:40px 0">Carregando...</div>';
+    return;
+  }
+
+  // gotSet = all TRUE stickers from sheet (source of truth)
+  const coladas       = gotSet.size;
+  const remaining     = TOTAL_ALBUM - coladas;
+  const pct           = (coladas / TOTAL_ALBUM * 100).toFixed(1);
+  // For per-team stats, use allData (originally FALSE stickers)
+  const allStickers   = Object.values(allData).flat();
+
+  // Per-team stats
+  const teamStats = Object.entries(allData)
+    .map(([code, nums]) => ({
+      code,
+      name: COUNTRY_NAMES[code] || code,
+      flag: FLAGS[code] || '🏳',
+      total: nums.length,
+      got: nums.filter(s => gotSet.has(s)).length,
+      remaining: nums.filter(s => !gotSet.has(s)).length,
+    }))
+    .filter(t => t.total > 0);
+
+  const complete   = teamStats.filter(t => t.remaining === 0);
+  const incomplete = teamStats.filter(t => t.remaining > 0);
+  const closest    = [...incomplete].sort((a,b) => a.remaining - b.remaining)[0];
+  const furthest   = [...incomplete].sort((a,b) => b.remaining - a.remaining)[0];
+
+  page.innerHTML = `
+    <div class="stat-card highlight">
+      <div class="stat-label">Progresso do Álbum</div>
+      <div class="stat-value">${pct}%</div>
+      <div class="progress-wrap"><div class="progress-bar" style="width:${pct}%"></div></div>
+      <div class="stat-sub">${remaining} figurinhas ainda faltando</div>
+    </div>
+
+    <div class="stat-row">
+      <div class="stat-card">
+        <div class="stat-label">Faltantes</div>
+        <div class="stat-value" style="color:#e05555">${allStickers.filter(s=>!gotSet.has(s)).length}</div>
+        <div class="stat-sub">figurinhas</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Coladas</div>
+        <div class="stat-value" style="color:var(--green)">${coladas}</div>
+        <div class="stat-sub">de ${TOTAL_ALBUM} no álbum</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Completas</div>
+        <div class="stat-value" style="color:var(--gold)">${complete.length}</div>
+        <div class="stat-sub">seleções</div>
+      </div>
+    </div>
+
+    ${closest ? `
+    <div class="stat-card">
+      <div class="stat-label">⚡ Mais próxima de completar</div>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:4px">
+        <span style="font-size:24px">${closest.flag}</span>
+        <div>
+          <div style="font-size:15px;font-weight:900;color:var(--text)">${closest.name}</div>
+          <div style="font-size:11px;color:var(--green)">Faltam apenas ${closest.remaining} figurinha${closest.remaining>1?'s':''}</div>
+        </div>
+      </div>
+    </div>` : ''}
+
+    ${furthest ? `
+    <div class="stat-card">
+      <div class="stat-label">🐢 Mais distante de completar</div>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:4px">
+        <span style="font-size:24px">${furthest.flag}</span>
+        <div>
+          <div style="font-size:15px;font-weight:900;color:var(--text)">${furthest.name}</div>
+          <div style="font-size:11px;color:#e05555">Ainda faltam ${furthest.remaining} figurinhas</div>
+        </div>
+      </div>
+    </div>` : ''}
+
+    <div class="stat-card">
+      <div class="stat-label">Ranking — menos faltantes</div>
+      ${incomplete.sort((a,b)=>a.remaining-b.remaining).slice(0,10).map(t => `
+        <div class="stat-team-row">
+          <span class="stat-team-name">${t.flag} ${t.name}</span>
+          <span class="stat-team-badge badge-green">${t.remaining} fig.</span>
+        </div>`).join('')}
+    </div>
+
+    ${complete.length ? `
+    <div class="stat-card">
+      <div class="stat-label">✅ Seleções completas</div>
+      ${complete.map(t => `
+        <div class="stat-team-row">
+          <span class="stat-team-name">${t.flag} ${t.name}</span>
+          <span class="stat-team-badge badge-gold">✓ Completa</span>
+        </div>`).join('')}
+    </div>` : ''}
+  `;
+}
+
+// INIT
+loadGot();
+loadData();
+</script>
+</body>
+</html>
